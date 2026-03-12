@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id         String   @id @db.Uuid
+  full_name  String?
+  avatar_url String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("profiles")
+}
+
+model Organization {
+  id         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  slug       String                 @unique
+  active     Boolean                @default(true)
+  created_at DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at DateTime               @default(now()) @db.Timestamptz(6)
+
+  user_roles       UserOrganizationRole[]
+  clients          Client[]
+  categories       Category[]
+  platforms        Platform[]
+  receivables      Receivable[]
+  payables         Payable[]
+  settlements      Settlement[]
+  app_settings     AppSetting[]
+  audit_logs       AuditLog[]
+  idempotency_keys FinanceIdempotencyKey[]
+
+  @@map("organizations")
+}
+
+model UserOrganizationRole {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  org_id     String   @db.Uuid
+  role       String
+  active     Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, org_id, role])
+  @@index([org_id, user_id])
+  @@map("user_organization_roles")
+}
+
+model Client {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id     String   @db.Uuid
+  name       String
+  email      String?
+  phone      String?
+  document   String?
+  status     String
+  avatar_url String?
+  notes      String?
+  created_by String?  @db.Uuid
+  updated_by String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  receivables  Receivable[]
+
+  @@index([org_id, name])
+  @@map("clients")
+}
+
+model Category {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id     String   @db.Uuid
+  name       String
+  type       String
+  color      String?
+  active     Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  receivables  Receivable[]
+  payables     Payable[]
+
+  @@unique([org_id, name, type])
+  @@map("categories")
+}
+
+model Platform {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id     String   @db.Uuid
+  name       String
+  type       String?
+  fee_value  Decimal  @default(0) @db.Decimal(14, 2)
+  fee_type   String?
+  notes      String?
+  active     Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  receivables  Receivable[]
+  payables     Payable[]
+
+  @@unique([org_id, name])
+  @@map("platforms")
+}
+
+model Receivable {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id             String    @db.Uuid
+  client_id          String?   @db.Uuid
+  description        String
+  amount             Decimal   @db.Decimal(14, 2)
+  due_date           DateTime  @db.Date
+  expected_date      DateTime? @db.Date
+  issue_date         DateTime? @db.Date
+  external_reference String?
+  payment_method     String?
+  category_id        String?   @db.Uuid
+  platform_id        String?   @db.Uuid
+  notes              String?
+  status             String
+  created_by         String?   @db.Uuid
+  updated_by         String?   @db.Uuid
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at         DateTime? @db.Timestamptz(6)
+  deleted_by         String?   @db.Uuid
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  client       Client?      @relation(fields: [client_id], references: [id], onDelete: SetNull)
+  category     Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  platform     Platform?    @relation(fields: [platform_id], references: [id], onDelete: SetNull)
+
+  @@index([org_id, status, due_date])
+  @@map("receivables")
+}
+
+model Payable {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id         String    @db.Uuid
+  description    String
+  amount         Decimal   @db.Decimal(14, 2)
+  due_date       DateTime  @db.Date
+  issue_date     DateTime? @db.Date
+  supplier_name  String?
+  payment_method String?
+  category_id    String?   @db.Uuid
+  platform_id    String?   @db.Uuid
+  notes          String?
+  status         String
+  created_by     String?   @db.Uuid
+  updated_by     String?   @db.Uuid
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at     DateTime? @db.Timestamptz(6)
+  deleted_by     String?   @db.Uuid
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  category     Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  platform     Platform?    @relation(fields: [platform_id], references: [id], onDelete: SetNull)
+
+  @@index([org_id, status, due_date])
+  @@map("payables")
+}
+
+model Settlement {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id          String   @db.Uuid
+  source_type     String
+  source_id       String   @db.Uuid
+  direction       String
+  amount          Decimal  @db.Decimal(14, 2)
+  settlement_date DateTime @db.Date
+  reference       String?
+  notes           String?
+  account_name    String?
+  created_by      String?  @db.Uuid
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+
+  @@unique([org_id, source_type, source_id])
+  @@index([org_id, settlement_date])
+  @@map("settlements")
+}
+
+model AppSetting {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id        String   @db.Uuid
+  setting_key   String
+  setting_value Json
+  updated_by    String?  @db.Uuid
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+
+  @@unique([org_id, setting_key])
+  @@index([org_id, setting_key])
+  @@map("app_settings")
+}
+
+model AuditLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id       String   @db.Uuid
+  entity_type  String
+  entity_id    String?  @db.Uuid
+  action       String
+  old_data     Json?
+  new_data     Json?
+  performed_by String?  @db.Uuid
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+
+  @@index([org_id, entity_type, created_at(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model FinanceIdempotencyKey {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  org_id           String   @db.Uuid
+  actor_id         String   @db.Uuid
+  scope            String
+  idempotency_key  String
+  request_hash     String
+  response_payload Json
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  expires_at       DateTime @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+
+  @@unique([org_id, actor_id, scope, idempotency_key])
+  @@index([expires_at])
+  @@map("finance_idempotency_keys")
+}

@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a1116;
+  --fg: #ecf3f7;
+  --muted: #8ba1ad;
+  --panel: rgba(16, 28, 36, 0.72);
+  --border: rgba(143, 180, 201, 0.25);
+  --accent: #36b7ff;
+  --accent-fg: #041019;
+}
+
+:root[data-theme='midnight'] {
+  --bg: #05070f;
+  --fg: #f3f5ff;
+  --muted: #9aa2c9;
+  --panel: rgba(20, 24, 52, 0.72);
+  --border: rgba(133, 149, 224, 0.25);
+  --accent: #6a87ff;
+  --accent-fg: #0d1333;
+}
+
+:root[data-theme='light'] {
+  --bg: #eff5f8;
+  --fg: #13202b;
+  --muted: #5b6f7c;
+  --panel: rgba(255, 255, 255, 0.88);
+  --border: rgba(35, 56, 69, 0.2);
+  --accent: #0e7490;
+  --accent-fg: #f0fcff;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.glass-panel {
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--panel) 92%, transparent), color-mix(in srgb, var(--panel) 80%, #000 20%));
+  border-radius: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+button,
+input,
+select,
+textarea {
+  outline: none;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent);
+}
