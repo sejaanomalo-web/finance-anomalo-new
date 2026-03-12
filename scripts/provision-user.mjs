@@ -9,11 +9,19 @@ if (!env.url || !env.serviceRole) {
   throw new Error('Defina SUPABASE_URL (ou VITE_SUPABASE_URL) e SUPABASE_SERVICE_ROLE_KEY.');
 }
 
-const [email, password, fullName, orgName, orgSlug, role = 'owner'] = process.argv.slice(2);
+const [email, password, fullName, orgName, orgSlug, roleArg] = process.argv.slice(2);
+const role = roleArg === 'owner' ? 'admin' : roleArg ?? 'admin';
 
 if (!email || !password || !orgName || !orgSlug) {
-  console.log('Uso: npm run provision:user -- <email> <password> <full_name> <org_name> <org_slug> [role]');
+  console.log(
+    'Uso: npm run provision:user -- <email> <password> <full_name> <org_name> <org_slug> [role]\n' +
+      'Roles sugeridos: admin, finance_manager, finance_analyst, viewer',
+  );
   process.exit(1);
+}
+
+if (roleArg === 'owner') {
+  console.warn('Role "owner" convertido para "admin" para compatibilidade com o banco atual.');
 }
 
 const baseUrl = env.url.replace(/\/$/, '');

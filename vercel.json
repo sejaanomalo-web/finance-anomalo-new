@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    { "source": "/login", "destination": "/" },
+    { "source": "/dashboard", "destination": "/" },
+    { "source": "/clientes", "destination": "/" },
+    { "source": "/clientes/:path*", "destination": "/" },
+    { "source": "/a-receber", "destination": "/" },
+    { "source": "/a-pagar", "destination": "/" },
+    { "source": "/fluxo-caixa", "destination": "/" },
+    { "source": "/fiscal", "destination": "/" },
+    { "source": "/plataformas", "destination": "/" },
+    { "source": "/equipe", "destination": "/" },
+    { "source": "/relatorios", "destination": "/" },
+    { "source": "/configuracoes", "destination": "/" }
+  ]
+}

@@ -110,7 +110,7 @@ npm run db:apply
 4. Provisionar usuário inicial:
 
 ```bash
-npm run provision:user -- admin@empresa.com SenhaForte123 "Admin" "Minha Empresa" "minha-empresa" owner
+npm run provision:user -- admin@empresa.com SenhaForte123 "Admin" "Minha Empresa" "minha-empresa" admin
 ```
 
 5. Rodar API e frontend:
@@ -126,6 +126,18 @@ npm run dev
 - Frontend em domínio público: configure `VITE_FINANCE_API_URL` para a URL da API de produção.
 - Backend: configure `CORS_ORIGIN` com todas as origens permitidas (ex.: `https://seuapp.com,https://usuario.github.io`).
 - CI: o repositório agora inclui workflow em `.github/workflows/ci.yml` para rodar `npm ci`, `npm run lint` e `npm run build`.
+
+### Deploy na Vercel (frontend)
+
+Se a tela carregar vazia com erro no console indicando variáveis do Supabase ausentes, faça:
+
+1. Abra **Project > Settings > Environment Variables**.
+2. Cadastre `VITE_SUPABASE_URL` com a URL do projeto Supabase (ex.: `https://xxxx.supabase.co`).
+3. Cadastre `VITE_SUPABASE_ANON_KEY` com a chave **anon public** do Supabase.
+4. Repita as duas variáveis nos ambientes `Production`, `Preview` e `Development`.
+5. Volte em **Deployments** e clique em **Redeploy** no deploy mais recente.
+
+Observação: em apps Vite, mudanças de env na Vercel só entram em vigor após novo build/deploy.
 
 ## Contrato API
 
