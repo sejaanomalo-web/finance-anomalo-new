@@ -1,7 +1,12 @@
 import { createContext } from 'react';
-import type { Organization, OrgRole } from '../types/domain';
+import type { Organization } from '../types/domain';
 
-export interface Membership extends OrgRole {
+export interface Membership {
+  id: string;
+  user_id: string;
+  org_id: string;
+  role: string;
+  active: boolean;
   organization: Organization;
 }
 

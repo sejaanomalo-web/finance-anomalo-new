@@ -24,7 +24,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
     const { data: membershipRows, error: membershipError } = await supabase
       .from('user_organization_roles')
-      .select('id, user_id, org_id, role, active, created_at, updated_at')
+      .select('id, user_id, org_id, role, active')
       .eq('user_id', user.id)
       .eq('active', true);
 
@@ -63,8 +63,6 @@ export function OrgProvider({ children }: { children: ReactNode }) {
           org_id: row.org_id,
           role: row.role,
           active: row.active,
-          created_at: row.created_at,
-          updated_at: row.updated_at,
           organization,
         };
       })
