@@ -22,24 +22,40 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data: membershipRows, error: membershipError } = await supabase
       .from('user_organization_roles')
-      .select('id, user_id, org_id, role, active, created_at, updated_at, organization:organizations(*)')
+      .select('id, user_id, org_id, role, active, created_at, updated_at')
       .eq('user_id', user.id)
       .eq('active', true);
 
-    if (error) {
+    if (membershipError) {
       setLoading(false);
-      throw error;
+      throw membershipError;
     }
 
-    const parsed = (data ?? [])
-      .map((row) => {
-        const organizationRow = Array.isArray((row as any).organization)
-          ? (row as any).organization[0]
-          : (row as any).organization;
+    const orgIds = Array.from(new Set((membershipRows ?? []).map((row) => row.org_id)));
+    const organizationsById = new Map<string, Organization>();
 
-        if (!organizationRow) return null;
+    if (orgIds.length > 0) {
+      const { data: organizationRows, error: organizationError } = await supabase
+        .from('organizations')
+        .select('*')
+        .in('id', orgIds);
+
+      if (organizationError) {
+        setLoading(false);
+        throw organizationError;
+      }
+
+      (organizationRows ?? []).forEach((organization) => {
+        organizationsById.set(organization.id, organization);
+      });
+    }
+
+    const parsed = (membershipRows ?? [])
+      .map((row) => {
+        const organization = organizationsById.get(row.org_id);
+        if (!organization) return null;
 
         return {
           id: row.id,
@@ -49,7 +65,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
           active: row.active,
           created_at: row.created_at,
           updated_at: row.updated_at,
-          organization: organizationRow as Organization,
+          organization,
         };
       })
       .filter((row): row is Membership => Boolean(row));
